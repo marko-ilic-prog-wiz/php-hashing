@@ -19,8 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (strlen($_POST["hash"]) != 796) {
                 exit;
         }
-        //lowsecurity will be 60 seconds, just to make it harder for a brute force attack,
-        //also we are including the IP in the lowsecurity hash to make it harder for botnet attacks from multiple ips
+        //lowsecurity will be timed to 60 seconds after page load, just to make it harder for a brute force attack,
+        //also we are including the IP in the lowsecurity hash to make it harder for botnet attacks from multiple ips,
+        //because they first need to get this lowsecurity hash from the server
         $currentTime = time();
         $passedLowSecurity = false;
         for ($timeCounter = $currentTime - 60; $timeCounter <= $currentTime; $timeCounter++) {
@@ -35,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         //time for some checks for the main hash to see if it only contains alphanumeric characters
         $mainHash = $_POST["hash"];
+        //exiting before the regex check if there are some forbidden characters, basically unnecessary,
+        //but would be a good point for logging to detect attacks
         $mainHash = str_replace(" ", "", $mainHash);
         $mainHash = str_replace("\n", "", $mainHash);
         $mainHash = str_replace("\r", "", $mainHash);
@@ -49,14 +52,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (isAllowedString($mainHash) === false) {
-                echo "not allowed";
                 exit;
         }
+        /////////////////////////////////////////////
+        /////////////////////////////////////////////
         //we would save these salts in the database for later use in hash verification
         $frontEndSalt1 = extractSalt1($mainHash);
         $frontEndSalt2 = extractSalt2($mainHash);
         $frontEndSalt3 = extractSalt3($mainHash);
         $frontEndSalt4 = extractSalt4($mainHash);
+        /////////////////////////////////////////////
+        /////////////////////////////////////////////
 
         if (strlen($frontEndSalt1) !== 64) {
                 exit;
