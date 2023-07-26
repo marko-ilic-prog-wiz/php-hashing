@@ -198,6 +198,6 @@ Hashed result:<br><br>
                 }
                 xhr.open('POST', 'backendHashing.php');
                 xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.send('hash=' + encodeURIComponent(hashedData));
+                xhr.send('hash=' + encodeURIComponent(hashedData)+ '&lowsecurity=<?php echo hash('sha256', time() . "1234567890lowsecurity" . $_SERVER['REMOTE_ADDR']); ?>');
         });
 </script>
