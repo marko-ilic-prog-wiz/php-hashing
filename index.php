@@ -9,7 +9,12 @@ ________________________________________________________________________________
 Hashed result:<br><br>
 <div id="resultHash"></div>
 <script>
-        //First front end hashing with fixed pepper
+        //First front end hashing with fixed pepper, there is also more robust backend hashing, which is actually the main focus of this project
+        //This is just a simple example of front end hashing, and it is not the main focus of this project
+        //Reason for front end hashing is to prevent transmission of the plain password over the internet,
+        //the server from ever seeing the original password, and to prevent the server from knowing if two users have the same password
+        //I am fully aware that attacker will completely bypass this front end hashing, but it is still a good practice to use it when regular people use the website,
+        //if for example their network is compromised, or if the backend is compromised, for example a malware on the server, or a data breach
         async function sha512HashSpecial(data) {
                 const pepper = '1234567890pepperForHashing';
                 const encoder = new TextEncoder();
@@ -183,7 +188,13 @@ Hashed result:<br><br>
         }
         
         var inputText = document.getElementById("textID").value;
-
+        ////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////
+        //MAIN CALL FOR HASHING TO THE SERVER
+        //MAIN CALL FOR HASHING TO THE SERVER
+        //MAIN CALL FOR HASHING TO THE SERVER
         hashThisText(inputText).then((hashedData) => {
                 //this is now ready to be sent to the server for backend hashing
                 

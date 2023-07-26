@@ -5,7 +5,7 @@ class TextHasher
         private $hash = '';
         private $lowSecurityHash = '';
         private $frontEndSalt1 = '', $frontEndSalt2 = '', $frontEndSalt3 = '', $frontEndSalt4 = '';
-
+        
         public function __construct($hash, $lowSecurityHash)
         {
                 //lowsecurity will be timed to 60 seconds after page load, just to make it harder for a brute force attack,
@@ -39,7 +39,7 @@ class TextHasher
                 if (strlen($mainHash) != 796) {
                         exit;
                 }
-
+                
                 if ($this->isAllowedString($mainHash) === false) {
                         exit;
                 }
@@ -98,12 +98,12 @@ class TextHasher
 
                 // Hash the mainHash using Argon2id with custom parameters
                 $hashedMainHash = password_hash($mainHash, PASSWORD_ARGON2ID, $options);
-
+                
                 // Output the hashed mainHash
                 //Normally we would save this in the database for later use in hash verification
                 return $hashedMainHash;
         }
-
+        
         private function extractSalt1($inputString)
         {
                 $pattern = '/-salt1-([^-]+)-salt2-/';
