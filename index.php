@@ -10,7 +10,7 @@
                 const encoder = new TextEncoder();
                 const dataBuffer = encoder.encode(pepper + data + pepper + data + pepper);
                 const hashBuffer = await crypto.subtle.digest('SHA-512', dataBuffer);
-                
+
                 // Convert the hash buffer to hexadecimal format
                 let hashedData = '';
                 const hashArray = new Uint8Array(hashBuffer);
@@ -20,7 +20,7 @@
 
                 return hashedData + hashedData;
         }
-        
+
         async function sha512HashRegular(data) {
                 const encoder = new TextEncoder();
                 const dataBuffer = encoder.encode(data);
@@ -35,12 +35,12 @@
 
                 return hashedData;
         }
-
+        
         async function sha384HashRegular(data) {
                 const encoder = new TextEncoder();
                 const dataBuffer = encoder.encode(data);
                 const hashBuffer = await crypto.subtle.digest('SHA-384', dataBuffer);
-                
+
                 // Convert the hash buffer to hexadecimal format
                 let hashedData = '';
                 const hashArray = new Uint8Array(hashBuffer);
@@ -50,7 +50,7 @@
 
                 return hashedData;
         }
-        
+
         //Function intended for eliminating some voulnerabilities of SHA-512 hashing,
         //as well as adding some execution time to make brute force attacks harder
         async function mainHashingWrapper(text) {
@@ -60,7 +60,8 @@
 
                 //First part of hashing
 
-                var hashedResultPart1 = '', hashedResultPart2 = '';
+                var hashedResultPart1 = '',
+                        hashedResultPart2 = '';
                 for (var increment = 0; increment < 1000; increment++) {
                         await sha512HashSpecial(hashedResult).then((hashedData) => {
                                 hashedResult = hashedData;
@@ -92,7 +93,7 @@
                                 hashedResultPart1 = hashedData;
                         });
                 }
-                
+
                 for (var increment = 0; increment < 50; increment++) {
                         await sha384HashRegular(hashedResultPart2).then((hashedData) => {
                                 hashedResultPart2 = hashedData;
@@ -102,44 +103,44 @@
                 /////////////////////////////////////////////////////////////////////////
 
                 //Third part of hashing
-                
+
                 var hashedResultPart3 = hashedResultPart1 + "fixedPepper1" + hashedResultPart1;
 
                 var hashedResultPart4 = hashedResultPart2 + "fixedPepper2" + hashedResultPart2;
-                
+
                 var hashedResultPart5 = hashedResultPart1 + "fixedPepper3" + hashedResultPart2;
 
                 var hashedResultPart6 = hashedResultPart2 + "fixedPepper4" + hashedResultPart1;
-                
-                var frontEndSalt1 = "-salt1-" + <?php echo hash('sha256',time() . "1"); ?>;
-                var frontEndSalt2 = "-salt2-" + <?php echo hash('sha256',time() . "2"); ?>;
-                var frontEndSalt3 = "-salt3-" + <?php echo hash('sha256',time() . "3"); ?>;
-                var frontEndSalt4 = "-salt4-" + <?php echo hash('sha256',time() . "4"); ?>;
+
+                var frontEndSalt1 = "-salt1- <?php echo hash('sha256', time() . "1"); ?>";
+                var frontEndSalt2 = "-salt2- <?php echo hash('sha256', time() . "2"); ?>";
+                var frontEndSalt3 = "-salt3- <?php echo hash('sha256', time() . "3"); ?>";
+                var frontEndSalt4 = "-salt4- <?php echo hash('sha256', time() . "4"); ?>";
                 
                 //Hash with front end salt so that the same passwords typed twice in a row will have different hashes,
                 //this protects against rainbow table attacks and against stealing passwords in transit if ssl is compromised or not used,
                 //or if there is some sort of malware in the clients network that steals passwords in transit
                 for (var increment = 0; increment < 50; increment++) {
                         await sha512HashRegular(hashedResultPart3).then((hashedData) => {
-                                hashedResultPart3 = hashedData . frontEndSalt1;
+                                hashedResultPart3 = hashedData.frontEndSalt1;
                         });
                 }
                 for (var increment = 0; increment < 50; increment++) {
                         await sha512HashRegular(hashedResultPart4).then((hashedData) => {
-                                hashedResultPart4 = hashedData . frontEndSalt2;
+                                hashedResultPart4 = hashedData.frontEndSalt2;
                         });
                 }
                 for (var increment = 0; increment < 50; increment++) {
                         await sha512HashRegular(hashedResultPart5).then((hashedData) => {
-                                hashedResultPart5 = hashedData . frontEndSalt3;
+                                hashedResultPart5 = hashedData.frontEndSalt3;
                         });
                 }
                 for (var increment = 0; increment < 50; increment++) {
                         await sha512HashRegular(hashedResultPart6).then((hashedData) => {
-                                hashedResultPart6 = hashedData . frontEndSalt4;
+                                hashedResultPart6 = hashedData.frontEndSalt4;
                         });
                 }
-                
+
                 //Another saltless hashing
                 for (var increment = 0; increment < 10; increment++) {
                         await sha512HashRegular(hashedResultPart3).then((hashedData) => {
@@ -161,12 +162,12 @@
                                 hashedResultPart6 = hashedData;
                         });
                 }
-                
-                hashedResult = hashedResultPart3 + hashedResultPart4 + hashedResultPart5 + hashedResultPart6+frontEndSalt1+frontEndSalt2+frontEndSalt3+frontEndSalt4;
+
+                hashedResult = hashedResultPart3 + hashedResultPart4 + hashedResultPart5 + hashedResultPart6 + frontEndSalt1 + frontEndSalt2 + frontEndSalt3 + frontEndSalt4;
 
                 return hashedResult;
         }
-        
+
         //main call for hashing
         async function hashThisText(textForHashing) {
                 var finalHashedResult = '';
@@ -177,9 +178,23 @@
         }
         
         var inputText = document.getElementById("textID").value;
-        
+
         hashThisText(inputText).then((hashedData) => {
                 //this is now ready to be sent to the server for backend hashing
-                alert(hashedData);
+                
+                let xhr = new XMLHttpRequest();
+                
+                // monitor the ready state. We're looking for 4 - done. Ignore anything else
+                xhr.onreadystatechange = function() {
+                        if (xhr.readyState === 4) {
+                                if (xhr.status === 200) {
+                                        document.getElementById("resultHash").innerHTML = xhr.responseText;
+                                }
+                        }
+                
+                }
+                xhr.open('POST', 'backendHashing.php');
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send('hash=' + encodeURIComponent(hashedData));
         });
 </script>
