@@ -52,12 +52,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo "not allowed";
                 exit;
         }
-        
+        //we would save these salts in the database for later use in hash verification
+        $frontEndSalt1 = extractSalt1($mainHash);
+        $frontEndSalt2 = extractSalt2($mainHash);
+        $frontEndSalt3 = extractSalt3($mainHash);
+        $frontEndSalt4 = extractSalt4($mainHash);
+
+        if (strlen($frontEndSalt1) !== 64) {
+                exit;
+        }
+        if (strlen($frontEndSalt2) !== 64) {
+                exit;
+        }
+        if (strlen($frontEndSalt3) !== 64) {
+                exit;
+        }
+        if (strlen($frontEndSalt4) !== 64) {
+                exit;
+        }
+
         //now we can start the backend hashing
+
+        $mainHash = hash('sha512', $mainHash);
+        $mainHash = hash('sha384', $mainHash);
+
+        // Specify custom Argon2id options
+        $options = [
+                'memory_cost' => 65536,   // The amount of memory in bytes that Argon2id will use (default is 1024 KB)
+                'time_cost'   => 4,       // The number of iterations (default is 2)
+                'threads'     => 3,       // The number of threads to use for processing (default is 2)
+        ];
+
+        // Hash the mainHash using Argon2id with custom parameters
+        $hashedMainHash = password_hash($mainHash, PASSWORD_ARGON2ID, $options);
         
-        
-        
-        echo $_POST["hash"];
+        // Output the hashed mainHash
+        //Normally we would save this in the database for later use in hash verification
+        echo $hashedMainHash;
+}
+
+function extractSalt1($inputString)
+{
+        $pattern = '/-salt1-([^-]+)-salt2-/';
+        preg_match($pattern, $inputString, $matches);
+        return isset($matches[1]) ? $matches[1] : exit;
+}
+function extractSalt2($inputString)
+{
+        $pattern = '/-salt2-([^-]+)-salt3-/';
+        preg_match($pattern, $inputString, $matches);
+        return isset($matches[1]) ? $matches[1] : exit;
+}
+
+function extractSalt3($inputString)
+{
+        $pattern = '/-salt3-([^-]+)-salt4-/';
+        preg_match($pattern, $inputString, $matches);
+        return isset($matches[1]) ? $matches[1] : exit;
+}
+
+function extractSalt4($inputString)
+{
+        $pattern = '/-salt4-([^-]+)$/';
+        preg_match($pattern, $inputString, $matches);
+        return isset($matches[1]) ? $matches[1] : exit;
 }
 
 function isAllowedString($stringInQuestion)
